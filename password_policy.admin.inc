@@ -222,7 +222,7 @@ function password_policy_admin_form($form_state, $policy = NULL) {
   $form['roles']['roles'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Roles'),
-    '#options' => user_roles(),
+    '#options' => user_roles(TRUE),
     '#default_value' => isset($policy['roles']) ? $policy['roles'] : array(),
     '#description' => t('Select the roles that this policy will apply to.'),
   );
@@ -309,9 +309,11 @@ function password_policy_admin_form_submit($form, &$form_state) {
   $policy = array();
   foreach ($form_state['values'] as $key => $value) {
     // If we have no form value, then we have no constraint to set.
-    $value = trim($value);
-    if ($value != "" && preg_match("/^constraint_/", $key)) {
-      $policy[substr($key, 11)] = $value;
+    if (!is_array($value)) { //dodge issues with roles array
+      $value = trim($value);
+      if ($value != "" && preg_match("/^constraint_/", $key)) {
+        $policy[substr($key, 11)] = $value;
+      }
     }
   }
 
@@ -365,5 +367,78 @@ function password_policy_admin_delete_submit($form, &$form_state) {
   drupal_set_message(t('Password policy %policy was deleted.', array('%policy' => $policy['name'])));
   watchdog('password_policy', 'Policy %name was deleted.', array('%name' => $policy['name']), WATCHDOG_NOTICE);
   drupal_goto('admin/settings/password_policy/list');
+}
+
+/**
+ * Forced password change form.
+ */
+function password_policy_password_change_settings() {
+  $form['password_policy_new_login_change'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force password change on first-time login'),
+    '#default_value' => variable_get('password_policy_new_login_change', 0),
+  );
+  $roles = user_roles(TRUE);
+  $form['password_policy_force_change_roles'] = array(
+    '#type' => 'checkboxes',
+    '#options' => $roles,
+    '#title' => t('Force users in the following roles to change their password'),
+    '#description' => t('Users who are not signed in will be required to change their password immediately upon sign in. Users who are currently signed in will be required to change their password upon their next page click, but after changing their password will be redirected back to the page they were attempting to access.'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Submit hook for forced password change form.
+ */
+function password_policy_password_change_settings_submit($form, &$form_state) {
+  global $user;
+  $selected_roles = array();
+  variable_set('password_policy_new_login_change', $form_state['values']['password_policy_new_login_change']);
+  if ($form_state['values']['password_policy_new_login_change'] == 1) {
+    watchdog('password policy', t('New user accounts must change password on new login enabled by !admin', array('!admin' => $user->name)), array(), WATCHDOG_NOTICE);
+  }
+  ($form_state['values']['password_policy_new_login_change']) ? drupal_set_message(t('New users will be required to change their password on first-time login.')) : drupal_set_message(t('New users will not be required to change their pasword on first-time login.'));
+  foreach ($form_state['values']['password_policy_force_change_roles'] as $role) {
+    // skip over null values returned by unselected roles
+    if ($role == 0) {
+      continue;
+    }
+    $uids = array();
+    // special handling for authenticated users role
+    // since this role makes no entries in the users_roles table
+    if ($role == 2) {
+      // no point in flagging Anonymous since they can't log in anyway
+      $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0');
+    }
+    else {
+      $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = %d', $role);
+    }
+    while ($uid = db_result($db_uids)) {
+      if (($uid == 1 && PASSWORD_POLICY_ADMIN) || $uid > 1) {
+        $uids[] = $uid;
+      }
+    }
+    $sql = 'UPDATE {password_policy_force_change} SET force_change = 1 WHERE uid IN (' . db_placeholders($uids, 'int') . ')';
+    db_query($sql, $uids);
+    $selected_roles[] = $role;
+  }
+  if (count($selected_roles)) {
+    $roles = user_roles(TRUE);
+    $list = array();
+    foreach ($selected_roles as $sr) {
+      $list[] = $roles[$sr];
+    }
+    $list = implode(', ', $list);
+    drupal_set_message(t('Users in the following roles will be required to immediately change their password: %list', array('%list' => $list)), 'status');
+    watchdog('password policy', t('!admin has flagged users in the following roles to immediately change their password: %list', array('%list' => $list, '!admin' => $user->name)), array(), WATCHDOG_NOTICE);
+  }
+  else {
+    drupal_set_message(t('No roles were selected.'));
+  }
 }
 
