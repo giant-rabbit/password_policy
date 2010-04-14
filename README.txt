@@ -51,7 +51,8 @@ The module also implements configurable password expiration features:
 
 Requirements
 ==========================================
-This version of the module is written and tested with a Drupal 6
+Drupal 6.x
+MySQL 5.0.3 or something else which supports varchar > 255
 
 Credits
 ==========================================
