@@ -48,6 +48,17 @@ The module also implements configurable password expiration features:
     login to the site once to change his password. If he does not change the password
     on that login, he won't be able to login again (will be bocked).
 
+Security note
+==========================================
+Enforcing tough policy is only good from a technical standpoint. You are 
+likely to end up with a situation where the users write down their super
+secure and super impossible to remember passwords. Help texts on how can
+you memorize such things (like shifting a word one row up the keyboard
+and so on). You should have separate company policy that deters users from
+writing passwords on a Post-it on the backside of their keyboard.
+
+Consider a company policy to use strong password generator tools like
+http://supergenpass.com/ or 1Password on MacOS.
 
 Requirements
 ==========================================
