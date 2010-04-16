@@ -254,7 +254,9 @@ function password_policy_admin_form($form_state, $policy = NULL) {
     '#collapsed' => FALSE
   );
 
-  foreach (_password_policy_constraints() as $constraint) {
+
+  global $_password_policy;
+  foreach ($_password_policy as $constraint) {
     $desc = _password_policy_constraint_description($constraint);
     $form['constraints']['constraint_'. $constraint] = array(
       '#type' => 'textfield',
