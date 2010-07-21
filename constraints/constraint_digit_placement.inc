@@ -23,7 +23,7 @@ function password_policy_constraint_digit_placement_description() {
  * Error message of the constraint.
  */
 function password_policy_constraint_digit_placement_error($constraint) {
-  return t('Password must have a minimum of %numChars %digits to place any digits at the start or end of the password.',
+  return t('Password must have a minimum of %numChars %digits in order to place any digits at the start or end of the password.',
     array('%numChars' => $constraint,
         '%digits' => format_plural($constraint, t('digit'), t('digits'))));
 }
