@@ -150,7 +150,7 @@ function password_policy_admin_list($form) {
       '#markup' => $row['name'],
     );
     $form['policies'][$pid]['roles'] = array(
-      '#markup' => theme('item_list', _password_policy_admin_list_roles($pid)),
+      '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
     );
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
@@ -246,29 +246,28 @@ function theme_password_policy_admin_list($variables) {
  */
 function password_policy_admin_view($policy) {
   $output = check_plain($policy['description']);
-  $options = array();
-  $options['header'] = array(t('Name'), t('Constraint'));
-  $options['rows'] = array();
+  $header = array(t('Name'), t('Constraint'));
+  $rows = array();
 
   $roles = _password_policy_admin_list_roles($policy['pid']);
   if (!empty($roles)) {
-    $options['rows'][] = array(t('Roles'), theme('item_list', $roles));
+    $rows[] = array(t('Roles'), theme('item_list', array('items' => $roles)));
   }
   if (!empty($policy['expiration'])) {
-    $options['rows'][] = array(t('Expiration'), $policy['expiration']);
+    $rows[] = array(t('Expiration'), $policy['expiration']);
   }
   if (!empty($policy['warning'])) {
-    $options['rows'][] = array(t('Warning'), $policy['warning']);
+    $rows[] = array(t('Warning'), $policy['warning']);
   }
   
   foreach ($policy['policy'] as $key => $val) {
     $desc = _password_policy_constraint_description($key);
-    $options['rows'][] = array($desc['name'], $val);
+    $rows[] = array($desc['name'], $val);
   }
   if (empty($rows)) {
-    $options['rows'][] = array(array('data' => t('No policies defined.'), 'colspan' => 2));
+    $rows[] = array(array('data' => t('No policies defined.'), 'colspan' => 2));
   }
-  $output .= theme('table', $options);
+  $output .= theme('table', array('header' => $header, 'rows' => $rows));
 
   return $output;
 }
