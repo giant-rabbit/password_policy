@@ -246,27 +246,29 @@ function theme_password_policy_admin_list($variables) {
  */
 function password_policy_admin_view($policy) {
   $output = check_plain($policy['description']);
-  $header = array(t('Name'), t('Constraint'));
-  $rows = array();
+  $options = array();
+  $options['header'] = array(t('Name'), t('Constraint'));
+  $options['rows'] = array();
 
   $roles = _password_policy_admin_list_roles($policy['pid']);
   if (!empty($roles)) {
-    $rows[] = array(t('Roles'), theme('item_list', $roles));
+    $options['rows'][] = array(t('Roles'), theme('item_list', $roles));
   }
   if (!empty($policy['expiration'])) {
-    $rows[] = array(t('Expiration'), $policy['expiration']);
+    $options['rows'][] = array(t('Expiration'), $policy['expiration']);
   }
   if (!empty($policy['warning'])) {
-    $rows[] = array(t('Warning'), $policy['warning']);
+    $options['rows'][] = array(t('Warning'), $policy['warning']);
   }
+  
   foreach ($policy['policy'] as $key => $val) {
     $desc = _password_policy_constraint_description($key);
-    $rows[] = array($desc['name'], $val);
+    $options['rows'][] = array($desc['name'], $val);
   }
   if (empty($rows)) {
-    $rows[] = array(array('data' => t('No policies defined.'), 'colspan' => 2));
+    $options['rows'][] = array(array('data' => t('No policies defined.'), 'colspan' => 2));
   }
-  $output .= theme('table', $header, $rows);
+  $output .= theme('table', $options);
 
   return $output;
 }
@@ -274,7 +276,7 @@ function password_policy_admin_view($policy) {
 /**
  * Form display for new or to be edited password policies.
  */
-function password_policy_admin_form($form_state, $policy = NULL) {
+function password_policy_admin_form($form, &$form_state, $policy = NULL) {
   $form['policy'] = array(
     '#type' => 'fieldset',
     '#title' => t('Policy'),
@@ -347,17 +349,19 @@ function password_policy_admin_form($form_state, $policy = NULL) {
     );
   }
 
-  $form['submit'] = array(
+  $form['actions'] = array('#type' => 'actions');
+
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => is_array($policy) ? t('Save') : t('Create'),
   );
 
   if ($policy) {
-    $form['delete'] = array(
+    $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
     );
-    $form['pid'] = array(
+    $form['actions']['pid'] = array(
       '#type' => 'hidden',
       '#value' => isset($policy['pid']) ? $policy['pid'] : '',
     );
@@ -403,7 +407,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
       ->fields(array(
         'name' => $form_state['values']['name'],
         'description' => $form_state['values']['description'],
-        'policy' => $policy,
+        'policy' => serialize($policy),
         'expiration' => trim($form_state['values']['expiration']),
         'warning' => str_replace(' ', '', $form_state['values']['warning']),      
       ))
@@ -422,7 +426,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
         'name' => $form_state['values']['name'],
         'description' => $form_state['values']['description'],
         'enabled' => 0,
-        'policy' => $policy,
+        'policy' => serialize($policy),
         'expiration' => trim($form_state['values']['expiration']),
         'warning' => str_replace(' ', '', $form_state['values']['warning']),
       ))
