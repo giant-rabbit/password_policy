@@ -531,9 +531,9 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
       $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0');
     }
     else {
-      $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = %d', array($role));
+      $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = :rid', array('rid' => $role))->fetchCol();
     }
-    while ($uid = db_result($db_uids)) {
+    foreach ($db_uids as $uid) {
       if (($uid == 1 && PASSWORD_POLICY_ADMIN) || $uid > 1) {
         $uids[] = $uid;
       }
