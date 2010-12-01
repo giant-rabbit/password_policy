@@ -534,16 +534,20 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
       $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = :rid', array('rid' => $role))->fetchCol();
     }
     foreach ($db_uids as $uid) {
-      if (($uid == 1 && PASSWORD_POLICY_ADMIN) || $uid > 1) {
-        $uids[] = $uid;
+      if (!empty($uid->uid)) {
+        if (($uid->uid == 1 && PASSWORD_POLICY_ADMIN) || $uid->uid > 1) {
+          $uids[] = $uid->uid;
+        }
       }
     }
-    db_update('password_policy_force_change')
-      ->fields(array(
-        'force_change' => 1
-      ))
-      ->condition('uid', $uids, 'IN')
-      ->execute();
+    if (!empty($uids)) {
+      db_update('password_policy_force_change')
+        ->fields(array(
+          'force_change' => 1
+        ))
+        ->condition('uid', $uids, 'IN')
+        ->execute();
+    }
     $selected_roles[] = $role;
   }
   if (count($selected_roles)) {
