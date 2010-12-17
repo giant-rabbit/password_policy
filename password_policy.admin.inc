@@ -115,7 +115,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
 
 function _password_policy_admin_list_roles($pid) {
   $roles = array();
-  $query = db_select('role', 'r');
+  $query = db_select('role', 'r', array('target' => 'slave'));
   $query->innerJoin('password_policy_role', 'p', 'p.rid = r.rid');
   $result = $query->fields('r', array('name'))
     ->condition('p.pid', $pid)
@@ -133,7 +133,7 @@ function password_policy_admin_list($form) {
   $options = array();
   $enabled = array();
 
-  $result = db_select('password_policy', 'p', array('fetch' => PDO::FETCH_ASSOC))
+  $result = db_select('password_policy', 'p', array('fetch' => PDO::FETCH_ASSOC, 'target' => 'slave'))
       ->fields('p', array('pid', 'name', 'enabled', 'description', 'created', 'weight'))
       ->orderBy('weight')
       ->execute();

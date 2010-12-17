@@ -74,7 +74,7 @@ function password_policy_constraint_history_js($constraint, $uid) {
 function _password_policy_constraint_history_old_passwords($constraint, $uid) {
   $pass = array();
   if (!empty($uid)) {
-    $query = db_select('password_policy_history', 'p', array('fetch' => PDO::FETCH_ASSOC));
+    $query = db_select('password_policy_history', 'p', array('fetch' => PDO::FETCH_ASSOC, 'target' => 'slave'));
     $query->fields('p',array('pass'))
       ->condition('p.uid', $uid)
       ->orderBy('p.created','DESC');
