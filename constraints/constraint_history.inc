@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Password policy constraint callbacks.

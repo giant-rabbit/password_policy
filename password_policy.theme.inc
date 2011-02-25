@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Theme callback file for the password_policy module.
