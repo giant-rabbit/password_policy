@@ -315,14 +315,17 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE
   );
-  $form['expiration']['expiration'] = array('#type' => 'textfield',
+  $form['expiration']['expiration'] = array(
+    '#type' => 'textfield',
     '#title' => t('Password Expiration'),
     '#default_value' => isset($policy['expiration']) ? $policy['expiration'] : '',
     '#size' => 5,
     '#maxlength' => 5,
-    '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Leaving this field empty won\'t put any password expiration constraints.'),
+    '#default_value' => 0,
+    '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Setting this field to 0 will not put any password expiration constraints.'),
   );
-  $form['expiration']['warning'] = array('#type' => 'textfield',
+  $form['expiration']['warning'] = array(
+    '#type' => 'textfield',
     '#title' => t('Password Expiration Warning'),
     '#default_value' => isset($policy['warning']) ? $policy['warning'] : '',
     '#size' => 10,
