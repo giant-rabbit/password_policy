@@ -318,10 +318,9 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
   $form['expiration']['expiration'] = array(
     '#type' => 'textfield',
     '#title' => t('Password Expiration'),
-    '#default_value' => isset($policy['expiration']) ? $policy['expiration'] : '',
+    '#default_value' => isset($policy['expiration']) ? $policy['expiration'] : '0',
     '#size' => 5,
     '#maxlength' => 5,
-    '#default_value' => 0,
     '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Setting this field to 0 will not put any password expiration constraints.'),
   );
   $form['expiration']['warning'] = array(
