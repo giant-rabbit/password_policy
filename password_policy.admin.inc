@@ -114,8 +114,12 @@ function password_policy_admin_settings_submit($form, &$form_state) {
 
 function _password_policy_admin_list_roles($pid) {
   $roles = array();
-  $result = db_query('SELECT name FROM {role} r INNER JOIN {password_policy_role} p ON r.rid = p.rid WHERE p.pid = %d', $pid);
-  while ($row = db_fetch_object($result)) {
+  $query = db_select('role', 'r', array('target' => 'slave'));
+  $query->innerJoin('password_policy_role', 'p', 'p.rid = r.rid');
+  $result = $query->fields('r', array('name'))
+    ->condition('p.pid', $pid)
+    ->execute();
+  foreach ($result as $row) {
     $roles[] = $row->name;
   }
   return $roles;
@@ -124,27 +128,58 @@ function _password_policy_admin_list_roles($pid) {
 /**
  * The list of the password policies.
  */
-function password_policy_admin_list() {
-  $form = array();
+function password_policy_admin_list($form) {
   $options = array();
   $enabled = array();
-  $result = db_query('SELECT pid, name, enabled, description, created, weight FROM {password_policy} ORDER BY weight');
-  while ($row = db_fetch_array($result)) {
+
+  $result = db_select('password_policy', 'p', array('fetch' => PDO::FETCH_ASSOC, 'target' => 'slave'))
+      ->fields('p', array('pid', 'name', 'enabled', 'description', 'created', 'weight'))
+      ->orderBy('weight')
+      ->execute();
+
+  $form['#tree'] = TRUE;
+  foreach ($result as $row) {
     $pid = $row['pid'];
     $options[$pid] = $row['enabled'] ? format_date($row['created'], 'medium') : '';
     if ($row['enabled']) {
       $enabled[] = $pid;
     }
-    $form[$pid]['name'] = array('#value' => $row['name']);
-    $form[$pid]['roles'] = array('#value' => theme('item_list', _password_policy_admin_list_roles($pid)));
-    $form['weight'][$pid] = array('#type' => 'weight', '#default_value' => $row['weight']);
-    $form[$pid]['view'] = array('#value' => l(t('view'), 'admin/settings/password_policy/'. $pid));
-    $form[$pid]['edit'] = array('#value' => l(t('edit'), 'admin/settings/password_policy/'. $pid .'/edit'));
-    $form[$pid]['delete'] = array('#value' => l(t('delete'), 'admin/settings/password_policy/delete/'. $pid));
+
+    $form['policies'][$pid]['name'] = array(
+      '#markup' => $row['name'],
+    );
+    $form['policies'][$pid]['roles'] = array(
+      '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
+    );
+    $form['policies'][$pid]['enabled'] = array('#type' => 'checkbox', '#default_value' => $row['enabled']);    
+    $form['policies'][$pid]['view'] = array(
+      '#type' => 'link',
+      '#title' => 'view',
+      '#href' => 'admin/config/people/password_policy/'. $pid,
+    );
+    $form['policies'][$pid]['edit'] = array(
+      '#type' => 'link',
+      '#title' => 'edit',
+      '#href' => 'admin/config/people/password_policy/'. $pid . '/edit',
+    );
+    $form['policies'][$pid]['delete'] = array(
+      '#type' => 'link',
+      '#title' => 'delete',
+      '#href' => 'admin/config/people/password_policy/delete/'. $pid,
+    );
+    $form['policies'][$pid]['weight'] = array(
+      '#type' => 'weight',
+      '#title' => t('Weight for @title', array('@title' => $row['name'])),
+      '#title_display' => 'invisible',
+      '#default_value' => $row['weight'],
+    );
   }
-  $form['weight']['#tree'] = TRUE;
-  $form['enabled'] = array('#type' => 'checkboxes', '#options' => $options, '#default_value' => $enabled);
-  $form['submit'] = array('#type' => 'submit', '#value' => t('Save changes'));
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save changes'),
+  );
   return $form;
 }
 
@@ -152,18 +187,57 @@ function password_policy_admin_list() {
  * Submit hook for the form on the default list view for the password policy module.
  */
 function password_policy_admin_list_submit($form, &$form_state) {
-  foreach ($form_state['values']['enabled'] as $pid => $enabled) {
-    db_query("UPDATE {password_policy} SET weight = %d WHERE pid = %d", $form_state['values']['weight'][$pid], $pid);
+  foreach ($form_state['values']['policies'] as $pid => $policy) {
+    db_query("UPDATE {password_policy} SET weight = :weight WHERE pid = :pid", array(':weight' => $policy['weight'], ':pid' => $pid));
     // Ensure we don't reset the timestamp on policies that are already enabled.
-    if ($enabled) {
-      db_query("UPDATE {password_policy} SET enabled = 1, created = %d WHERE pid = %d AND enabled = 0", time(), $pid);
+    if ($policy['enabled']) {
+      db_query("UPDATE {password_policy} SET enabled = 1, created = :time WHERE pid = :pid AND enabled = 0", array(':time'=>time(), ':pid'=>$pid));
     }
     else {
-      db_query("UPDATE {password_policy} SET enabled = 0 WHERE pid = %d", $pid);
+      db_query("UPDATE {password_policy} SET enabled = 0 WHERE pid = :pid", array(':pid'=>$pid));
     }
   }
 
   drupal_set_message(t('The changes have been saved.'));
+}
+
+
+/**
+ * Returns HTML for the password policy administration list.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ *
+ * @ingroup themeable
+ * @see theme_filter_admin_overview()
+ */
+function theme_password_policy_admin_list($variables) {
+  $form = $variables['form'];
+
+  $rows = array();
+  foreach (element_children($form['policies']) as $id) {
+    $form['policies'][$id]['weight']['#attributes']['class'] = array('password-policy-order-weight');
+    $rows[] = array(
+      'data' => array(
+        drupal_render($form['policies'][$id]['name']),
+        drupal_render($form['policies'][$id]['roles']),
+        drupal_render($form['policies'][$id]['enabled']),        
+        drupal_render($form['policies'][$id]['weight']),
+        drupal_render($form['policies'][$id]['view']),
+        drupal_render($form['policies'][$id]['edit']),
+        drupal_render($form['policies'][$id]['delete']),
+      ),
+      'class' => array('draggable'),
+    );
+  }
+  $header = array(t('Name'), t('Roles'), t('Enabled'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'password-policy-order')));
+  $output .= drupal_render_children($form);
+
+  drupal_add_tabledrag('password-policy-order', 'order', 'sibling', 'password-policy-order-weight');
+
+  return $output;
 }
 
 /**
@@ -173,9 +247,10 @@ function password_policy_admin_view($policy) {
   $output = check_plain($policy['description']);
   $header = array(t('Name'), t('Constraint'));
   $rows = array();
+
   $roles = _password_policy_admin_list_roles($policy['pid']);
   if (!empty($roles)) {
-    $rows[] = array(t('Roles'), theme('item_list', $roles));
+    $rows[] = array(t('Roles'), theme('item_list', array('items' => $roles)));
   }
   if (!empty($policy['expiration'])) {
     $rows[] = array(t('Expiration'), $policy['expiration']);
@@ -183,6 +258,7 @@ function password_policy_admin_view($policy) {
   if (!empty($policy['warning'])) {
     $rows[] = array(t('Warning'), $policy['warning']);
   }
+  
   foreach ($policy['policy'] as $key => $val) {
     $desc = _password_policy_constraint_description($key);
     $rows[] = array($desc['name'], $val);
@@ -190,7 +266,7 @@ function password_policy_admin_view($policy) {
   if (empty($rows)) {
     $rows[] = array(array('data' => t('No policies defined.'), 'colspan' => 2));
   }
-  $output .= theme('table', $header, $rows);
+  $output .= theme('table', array('header' => $header, 'rows' => $rows));
 
   return $output;
 }
@@ -198,18 +274,24 @@ function password_policy_admin_view($policy) {
 /**
  * Form display for new or to be edited password policies.
  */
-function password_policy_admin_form($form_state, $policy = NULL) {
+function password_policy_admin_form($form, &$form_state, $policy = NULL) {
+  $form['policy'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Policy'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
   $form['policy']['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Name'),
-    '#default_value' => $policy['name'],
+    '#default_value' => isset($policy['name']) ? $policy['name'] : '',
     '#maxlength' => 64,
     '#required' => TRUE,
   );
   $form['policy']['description'] = array(
     '#type' => 'textarea',
     '#title' => t('Description'),
-    '#default_value' => $policy['description'],
+    '#default_value' => isset($policy['description']) ? $policy['description'] : '',
   );
 
   $form['roles'] = array(
@@ -232,16 +314,18 @@ function password_policy_admin_form($form_state, $policy = NULL) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE
   );
-  $form['expiration']['expiration'] = array('#type' => 'textfield',
+  $form['expiration']['expiration'] = array(
+    '#type' => 'textfield',
     '#title' => t('Password Expiration'),
-    '#default_value' => $policy['expiration'],
+    '#default_value' => isset($policy['expiration']) ? $policy['expiration'] : '0',
     '#size' => 5,
     '#maxlength' => 5,
-    '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Leaving this field empty won\'t put any password expiration constraints.'),
+    '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Setting this field to 0 will not put any password expiration constraints.'),
   );
-  $form['expiration']['warning'] = array('#type' => 'textfield',
+  $form['expiration']['warning'] = array(
+    '#type' => 'textfield',
     '#title' => t('Password Expiration Warning'),
-    '#default_value' => $policy['warning'],
+    '#default_value' => isset($policy['warning']) ? $policy['warning'] : '',
     '#size' => 10,
     '#description' => t('The comma separated list of days. The warning about expiration of the password will be sent out on those days before the expiration. Leaving this field empty won\'t send out or display any warnings.'),
   );
@@ -259,25 +343,27 @@ function password_policy_admin_form($form_state, $policy = NULL) {
       '#type' => 'textfield',
       '#size' => 5,
       '#default_value' => isset($policy['policy'][$constraint]) ? $policy['policy'][$constraint] : NULL,
-      '#maxlength' => 2,
+      '#maxlength' => 3,
       '#title' => $desc['name'],
       '#description' => $desc['description'],
     );
   }
 
-  $form['submit'] = array(
+  $form['actions'] = array('#type' => 'actions');
+
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => is_array($policy) ? t('Save') : t('Create'),
   );
 
   if ($policy) {
-    $form['delete'] = array(
+    $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
     );
-    $form['pid'] = array(
+    $form['actions']['pid'] = array(
       '#type' => 'hidden',
-      '#value' => $policy['pid'],
+      '#value' => isset($policy['pid']) ? $policy['pid'] : '',
     );
   }
 
@@ -301,7 +387,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
   $op = $form_state['values']['op'];
 
   if ($op == t('Delete')) {
-    drupal_goto('admin/settings/password_policy/delete/'. $form_state['values']['pid']);
+    drupal_goto('admin/config/people/password_policy/delete/'. $form_state['values']['pid']);
   }
 
   $policy = array();
@@ -316,25 +402,49 @@ function password_policy_admin_form_submit($form, &$form_state) {
   }
 
   // If we have an pid, update, else save.
-  if (isset($form_state['values']['pid'])) {
-    db_query("UPDATE {password_policy} SET name = '%s', description = '%s', policy = '%s', expiration = %d, warning = '%s' WHERE pid = %d", $form_state['values']['name'], $form_state['values']['description'], serialize($policy), trim($form_state['values']['expiration']), str_replace(' ', '', $form_state['values']['warning']), $form_state['values']['pid']);
+  if (isset($form_state['values']['pid']) && $form_state['values']['pid']) {
+    db_update('password_policy') 
+      ->fields(array(
+        'name' => $form_state['values']['name'],
+        'description' => $form_state['values']['description'],
+        'policy' => serialize($policy),
+        'expiration' => trim($form_state['values']['expiration']),
+        'warning' => str_replace(' ', '', $form_state['values']['warning']),      
+      ))
+      ->condition('pid', $form_state['values']['pid'])
+      ->execute();
     drupal_set_message(t('Policy %name has been updated.', array('%name' => $form_state['values']['name'])));
-    watchdog('password_policy', 'Policy %name updated.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/settings/password_policy/'. $form_state['values']['pid'] .'/edit'));
+    watchdog('password_policy', 'Policy %name updated.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/'. $form_state['values']['pid'] .'/edit'));
     $pid = $form_state['values']['pid'];
-    db_query("DELETE FROM {password_policy_role} WHERE pid = %d", $pid);
+    db_delete('password_policy_role')
+      ->condition('pid', $pid)
+      ->execute();
   }
   else {
-    db_query("INSERT INTO {password_policy} (name, description, enabled, policy, expiration, warning) VALUES ('%s', '%s', %d, '%s', %d, '%s')", $form_state['values']['name'], $form_state['values']['description'], 0, serialize($policy), trim($form_state['values']['expiration']), str_replace(' ', '', $form_state['values']['warning']));
-    $pid = db_last_insert_id('password_policy', 'pid');
+    $pid = db_insert('password_policy')
+      ->fields(array(
+        'name' => $form_state['values']['name'],
+        'description' => $form_state['values']['description'],
+        'enabled' => 0,
+        'policy' => serialize($policy),
+        'expiration' => trim($form_state['values']['expiration']),
+        'warning' => str_replace(' ', '', $form_state['values']['warning']),
+      ))
+      ->execute();
     drupal_set_message(t('Policy %name has been created.', array('%name' =>  $form_state['values']['name'])));
-    watchdog('password_policy', 'New policy %name created.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/settings/password_policy/'. $pid .'/edit'));
+    watchdog('password_policy', 'New policy %name created.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/'. $pid .'/edit'));
   }
 
   foreach (array_filter($form_state['values']['roles']) as $rid => $enabled) {
-    db_query("INSERT INTO {password_policy_role} (pid, rid) VALUES (%d, %d)", $pid, $rid);
+    db_insert('password_policy_role')
+      ->fields(array(
+        'pid' => $pid,
+        'rid' => $rid,
+      ))
+      ->execute();
   }
 
-  drupal_goto('admin/settings/password_policy/list');
+  drupal_goto('admin/config/people/password_policy/list');
 }
 
 /**
@@ -345,7 +455,7 @@ function password_policy_admin_delete($form_state, $pid) {
   if (is_numeric($pid) && $policy = _password_policy_load_policy_by_pid($pid)) {
     $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
 
-    return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/settings/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+    return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/config/people/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
   }
   else {
     drupal_not_found();
@@ -360,17 +470,22 @@ function password_policy_admin_delete_submit($form, &$form_state) {
   $pid = $form_state['values']['pid'];
   $policy = _password_policy_load_policy_by_pid($pid);
 
-  db_query("DELETE FROM {password_policy} WHERE pid = %d", $pid);
-  db_query("DELETE FROM {password_policy_role} WHERE pid = %d", $pid);
-  drupal_set_message(t('Password policy %policy was deleted.', array('%policy' => $policy['name'])));
+  db_delete('password_policy')
+    ->condition('pid', $pid)
+    ->execute();
+  db_delete('password_policy_role')
+    ->condition('pid', $pid)
+    ->execute();  drupal_set_message(t('Password policy %policy was deleted.', array('%policy' => $policy['name'])));
   watchdog('password_policy', 'Policy %name was deleted.', array('%name' => $policy['name']), WATCHDOG_NOTICE);
-  drupal_goto('admin/settings/password_policy/list');
+  drupal_goto('admin/config/people/password_policy/list');
 }
 
 /**
  * Forced password change form.
  */
 function password_policy_password_change_settings() {
+  $form = array();
+
   $form['password_policy_new_login_change'] = array(
     '#type' => 'checkbox',
     '#title' => t('Force password change on first-time login'),
@@ -383,10 +498,13 @@ function password_policy_password_change_settings() {
     '#title' => t('Force users in the following roles to change their password'),
     '#description' => t('Users who are not signed in will be required to change their password immediately upon sign in. Users who are currently signed in will be required to change their password upon their next page click, but after changing their password will be redirected back to the page they were attempting to access.'),
   );
-  $form['submit'] = array(
+  
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
+
   return $form;
 }
 
@@ -414,15 +532,23 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
       $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0');
     }
     else {
-      $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = %d', $role);
+      $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = :rid', array('rid' => $role))->fetchCol();
     }
-    while ($uid = db_result($db_uids)) {
-      if (($uid == 1 && variable_get('password_policy_admin', 0)) || $uid > 1) {
-        $uids[] = $uid;
+    foreach ($db_uids as $uid) {
+      if (!empty($uid->uid)) {
+        if (($uid->uid == 1 && variable_get('password_policy_admin', 0)) || $uid->uid > 1) {
+          $uids[] = $uid->uid;
+        }
       }
     }
-    $sql = 'UPDATE {password_policy_force_change} SET force_change = 1 WHERE uid IN (' . db_placeholders($uids, 'int') . ')';
-    db_query($sql, $uids);
+    if (!empty($uids)) {
+      db_update('password_policy_force_change')
+        ->fields(array(
+          'force_change' => 1
+        ))
+        ->condition('uid', $uids, 'IN')
+        ->execute();
+    }
     $selected_roles[] = $role;
   }
   if (count($selected_roles)) {
