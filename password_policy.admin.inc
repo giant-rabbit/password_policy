@@ -21,19 +21,19 @@ function password_policy_admin_settings() {
   $form['expiration']['password_policy_admin'] = array(
     '#type' => 'checkbox',
     '#title' => t('Admin (UID=1) password expires.'),
-    '#default_value' => PASSWORD_POLICY_ADMIN,
+    '#default_value' => variable_get('password_policy_admin', 0),
     '#description' => t('Admin account password will obey expiration policy.'),
   );
   $form['expiration']['password_policy_begin'] = array(
     '#type' => 'radios',
     '#title' => t('Beginning of password expirations'),
-    '#default_value' => PASSWORD_POLICY_BEGIN,
+    '#default_value' => variable_get('password_policy_begin', 0),
     '#options' => array('0' => t('After expiration time from setting a default policy (all passwords are valid during the expiration time from setting the default policy, and after that older than expiration time passwords expire).'), '1' => t('Setting a default policy (passwords older than expiration time expire after setting the default policy, retroactive behaviour).')),
   );
   $form['expiration']['password_policy_block'] = array(
     '#type' => 'radios',
     '#title' => t('Blocking expired accounts'),
-    '#default_value' => PASSWORD_POLICY_BLOCK,
+    '#default_value' => variable_get('password_policy_block', 0),
     '#options' => array('0' => t('Expired accounts are blocked. Only administrators can unblock them.'), '1' => t('The user with expired account is not blocked, but sent to a change password page. If the password is not changed, the account is blocked and the user cannot login again.')),
   );
 
@@ -47,7 +47,7 @@ function password_policy_admin_settings() {
   $form['visibility']['password_policy_show_restrictions'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show restrictions on password change page.'),
-    '#default_value' => PASSWORD_POLICY_SHOW_RESTRICTIONS,
+    '#default_value' => variable_get('password_policy_show_restrictions', 0),
     '#description' => t('Should password restrictions be listed on the password change page. A javascript warning block will be shown anyways if ithe typed in password does not meet the restrictions.'),
   );
 
@@ -417,7 +417,7 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
       $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = %d', $role);
     }
     while ($uid = db_result($db_uids)) {
-      if (($uid == 1 && PASSWORD_POLICY_ADMIN) || $uid > 1) {
+      if (($uid == 1 && variable_get('password_policy_admin', 0)) || $uid > 1) {
         $uids[] = $uid;
       }
     }
