@@ -151,7 +151,7 @@ function password_policy_admin_list($form) {
     $form['policies'][$pid]['roles'] = array(
       '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
     );
-    $form['policies'][$pid]['enabled'] = array('#type' => 'checkbox', '#default_value' => $row['enabled']);    
+    $form['policies'][$pid]['enabled'] = array('#type' => 'checkbox', '#default_value' => $row['enabled']);
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
       '#title' => 'view',
@@ -222,7 +222,7 @@ function theme_password_policy_admin_list($variables) {
       'data' => array(
         drupal_render($form['policies'][$id]['name']),
         drupal_render($form['policies'][$id]['roles']),
-        drupal_render($form['policies'][$id]['enabled']),        
+        drupal_render($form['policies'][$id]['enabled']),
         drupal_render($form['policies'][$id]['weight']),
         drupal_render($form['policies'][$id]['view']),
         drupal_render($form['policies'][$id]['edit']),
@@ -403,13 +403,13 @@ function password_policy_admin_form_submit($form, &$form_state) {
 
   // If we have an pid, update, else save.
   if (isset($form_state['values']['pid']) && $form_state['values']['pid']) {
-    db_update('password_policy') 
+    db_update('password_policy')
       ->fields(array(
         'name' => $form_state['values']['name'],
         'description' => $form_state['values']['description'],
         'policy' => serialize($policy),
         'expiration' => trim($form_state['values']['expiration']),
-        'warning' => str_replace(' ', '', $form_state['values']['warning']),      
+        'warning' => str_replace(' ', '', $form_state['values']['warning']),
       ))
       ->condition('pid', $form_state['values']['pid'])
       ->execute();
@@ -529,16 +529,14 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
     // since this role makes no entries in the users_roles table
     if ($role == 2) {
       // no point in flagging Anonymous since they can't log in anyway
-      $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0');
+      $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0')->fetchCol();
     }
     else {
       $db_uids = db_query('SELECT uid FROM {users_roles} WHERE rid = :rid', array('rid' => $role))->fetchCol();
     }
     foreach ($db_uids as $uid) {
-      if (!empty($uid->uid)) {
-        if (($uid->uid == 1 && variable_get('password_policy_admin', 0)) || $uid->uid > 1) {
-          $uids[] = $uid->uid;
-        }
+      if (($uid == 1 && variable_get('password_policy_admin', 0)) || $uid > 1) {
+        $uids[] = $uid;
       }
     }
     if (!empty($uids)) {
@@ -565,4 +563,3 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
     drupal_set_message(t('No roles were selected.'));
   }
 }
-
