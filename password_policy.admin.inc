@@ -216,23 +216,30 @@ function theme_password_policy_admin_list($variables) {
   $form = $variables['form'];
 
   $rows = array();
-  foreach (element_children($form['policies']) as $id) {
-    $form['policies'][$id]['weight']['#attributes']['class'] = array('password-policy-order-weight');
-    $rows[] = array(
-      'data' => array(
-        drupal_render($form['policies'][$id]['name']),
-        drupal_render($form['policies'][$id]['roles']),
-        drupal_render($form['policies'][$id]['enabled']),
-        drupal_render($form['policies'][$id]['weight']),
-        drupal_render($form['policies'][$id]['view']),
-        drupal_render($form['policies'][$id]['edit']),
-        drupal_render($form['policies'][$id]['delete']),
-      ),
-      'class' => array('draggable'),
-    );
+  if (isset($form['policies']) && count($form['policies'])) {
+    foreach (element_children($form['policies']) as $id) {
+      $form['policies'][$id]['weight']['#attributes']['class'] = array('password-policy-order-weight');
+      $rows[] = array(
+        'data' => array(
+          drupal_render($form['policies'][$id]['name']),
+          drupal_render($form['policies'][$id]['roles']),
+          drupal_render($form['policies'][$id]['enabled']),        
+          drupal_render($form['policies'][$id]['weight']),
+          drupal_render($form['policies'][$id]['view']),
+          drupal_render($form['policies'][$id]['edit']),
+          drupal_render($form['policies'][$id]['delete']),
+        ),
+        'class' => array('draggable'),
+      );
+    }
   }
   $header = array(t('Name'), t('Roles'), t('Enabled'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'password-policy-order')));
+  $output = theme('table', array(
+    'header' => $header, 
+    'rows' => $rows, 
+    'attributes' => array('id' => 'password-policy-order'),
+    'empty' => t('No policies have been created.'),
+  ));
   $output .= drupal_render_children($form);
 
   drupal_add_tabledrag('password-policy-order', 'order', 'sibling', 'password-policy-order-weight');
