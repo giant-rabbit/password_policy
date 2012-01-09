@@ -165,7 +165,7 @@ function password_policy_admin_list($form) {
     $form['policies'][$pid]['delete'] = array(
       '#type' => 'link',
       '#title' => 'delete',
-      '#href' => 'admin/config/people/password_policy/delete/'. $pid,
+      '#href' => 'admin/config/people/password_policy/'. $pid . '/delete',
     );
     $form['policies'][$pid]['weight'] = array(
       '#type' => 'weight',
@@ -458,16 +458,10 @@ function password_policy_admin_form_submit($form, &$form_state) {
  * Confirmation form for the deletion of a password policy.  Deletion takes place
  * in password_policy_admin_delete_submit().
  */
-function password_policy_admin_delete($form_state, $pid) {
-  if (is_numeric($pid) && $policy = _password_policy_load_policy_by_pid($pid)) {
-    $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
+function password_policy_admin_delete($form, $form_state, $policy) {
+  $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
 
-    return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/config/people/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
-  }
-  else {
-    drupal_not_found();
-    exit;
-  }
+  return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/config/people/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
 }
 
 /**
