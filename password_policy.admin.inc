@@ -146,12 +146,15 @@ function password_policy_admin_list($form) {
     }
 
     $form['policies'][$pid]['name'] = array(
-      '#markup' => $row['name'],
+      '#markup' => check_plain($row['name']),
     );
     $form['policies'][$pid]['roles'] = array(
       '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
     );
-    $form['policies'][$pid]['enabled'] = array('#type' => 'checkbox', '#default_value' => $row['enabled']);
+    $form['policies'][$pid]['enabled'] = array(
+      '#type' => 'checkbox', 
+      '#default_value' => $row['enabled']
+    );
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
       '#title' => 'view',
