@@ -146,12 +146,15 @@ function password_policy_admin_list($form) {
     }
 
     $form['policies'][$pid]['name'] = array(
-      '#markup' => $row['name'],
+      '#markup' => check_plain($row['name']),
     );
     $form['policies'][$pid]['roles'] = array(
       '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
     );
-    $form['policies'][$pid]['enabled'] = array('#type' => 'checkbox', '#default_value' => $row['enabled']);
+    $form['policies'][$pid]['enabled'] = array(
+      '#type' => 'checkbox', 
+      '#default_value' => $row['enabled']
+    );
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
       '#title' => 'view',
@@ -165,7 +168,7 @@ function password_policy_admin_list($form) {
     $form['policies'][$pid]['delete'] = array(
       '#type' => 'link',
       '#title' => 'delete',
-      '#href' => 'admin/config/people/password_policy/delete/'. $pid,
+      '#href' => 'admin/config/people/password_policy/'. $pid . '/delete',
     );
     $form['policies'][$pid]['weight'] = array(
       '#type' => 'weight',
@@ -216,23 +219,30 @@ function theme_password_policy_admin_list($variables) {
   $form = $variables['form'];
 
   $rows = array();
-  foreach (element_children($form['policies']) as $id) {
-    $form['policies'][$id]['weight']['#attributes']['class'] = array('password-policy-order-weight');
-    $rows[] = array(
-      'data' => array(
-        drupal_render($form['policies'][$id]['name']),
-        drupal_render($form['policies'][$id]['roles']),
-        drupal_render($form['policies'][$id]['enabled']),
-        drupal_render($form['policies'][$id]['weight']),
-        drupal_render($form['policies'][$id]['view']),
-        drupal_render($form['policies'][$id]['edit']),
-        drupal_render($form['policies'][$id]['delete']),
-      ),
-      'class' => array('draggable'),
-    );
+  if (isset($form['policies']) && count($form['policies'])) {
+    foreach (element_children($form['policies']) as $id) {
+      $form['policies'][$id]['weight']['#attributes']['class'] = array('password-policy-order-weight');
+      $rows[] = array(
+        'data' => array(
+          drupal_render($form['policies'][$id]['name']),
+          drupal_render($form['policies'][$id]['roles']),
+          drupal_render($form['policies'][$id]['enabled']),        
+          drupal_render($form['policies'][$id]['weight']),
+          drupal_render($form['policies'][$id]['view']),
+          drupal_render($form['policies'][$id]['edit']),
+          drupal_render($form['policies'][$id]['delete']),
+        ),
+        'class' => array('draggable'),
+      );
+    }
   }
   $header = array(t('Name'), t('Roles'), t('Enabled'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'password-policy-order')));
+  $output = theme('table', array(
+    'header' => $header, 
+    'rows' => $rows, 
+    'attributes' => array('id' => 'password-policy-order'),
+    'empty' => t('No policies have been created.'),
+  ));
   $output .= drupal_render_children($form);
 
   drupal_add_tabledrag('password-policy-order', 'order', 'sibling', 'password-policy-order-weight');
@@ -451,16 +461,10 @@ function password_policy_admin_form_submit($form, &$form_state) {
  * Confirmation form for the deletion of a password policy.  Deletion takes place
  * in password_policy_admin_delete_submit().
  */
-function password_policy_admin_delete($form_state, $pid) {
-  if (is_numeric($pid) && $policy = _password_policy_load_policy_by_pid($pid)) {
-    $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
+function password_policy_admin_delete($form, $form_state, $policy) {
+  $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
 
-    return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/config/people/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
-  }
-  else {
-    drupal_not_found();
-    exit;
-  }
+  return confirm_form($form, t('Are you sure you want to delete the policy %name?', array('%name' => $policy['name'])), 'admin/config/people/password_policy/list', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
 }
 
 /**
