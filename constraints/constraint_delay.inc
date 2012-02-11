@@ -29,9 +29,13 @@ function password_policy_constraint_delay_error($constraint) {
  * Password validation.
  */
 function password_policy_constraint_delay_validate($password, $constraint, $uid) {
-  $result = db_query_range("SELECT MAX(created) as created FROM {password_policy_history} WHERE uid = :uid", 0, 1, array(':uid' => $uid));
-  $last_change = $result->fetchField();
-  if (!empty($last_change)) {
+  $last_change = db_select('password_policy_history')
+    ->addExpression('MAX(created')
+    ->condition('uid', $uid)
+    ->execute()
+    ->fetchField();
+
+  if ($last_change) {
     // Constraint is set in hours, so it gets converted to seconds with *60*60.
     return time() - ($constraint*60*60) > $last_change;
   }
@@ -41,3 +45,4 @@ function password_policy_constraint_delay_validate($password, $constraint, $uid)
 function password_policy_constraint_delay_js() {
   return '';
 }
+
