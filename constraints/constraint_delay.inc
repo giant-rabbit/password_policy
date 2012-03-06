@@ -29,9 +29,9 @@ function password_policy_constraint_delay_error($constraint) {
  * Password validation.
  */
 function password_policy_constraint_delay_validate($password, $constraint, $uid) {
-  $last_change = db_select('password_policy_history')
-    ->addExpression('MAX(created')
-    ->condition('uid', $uid)
+  $query = db_select('password_policy_history');
+  $query->addExpression('MAX(created)');
+  $last_change = $query->condition('uid', $uid)
     ->execute()
     ->fetchField();
 
