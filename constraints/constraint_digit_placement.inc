@@ -31,11 +31,14 @@ function password_policy_constraint_digit_placement_error($constraint) {
  * Password validation.
  */
 function password_policy_constraint_digit_placement_validate($password, $constraint, $uid) {
-  $number_of_digits = 0;
-  for ($i=0; $i<10; $i++) {
-    $number_of_digits += substr_count($password, "$i"); // help string count by sending it a string instead of an int
+  $chars = drupal_strlen($password);
+  $num = 0;
+  for ($i = 0; $i < $chars; ++$i) {
+    if (ctype_digit(drupal_substr($password, $i, 1))) {
+      $num++;
+    }
   }
-  if ($number_of_digits < (int)$constraint) {
+  if ($num < (int) $constraint) {
     return preg_match("/^(\d+)|(\d+)$/", $password) != 1;
   }
   return TRUE;
