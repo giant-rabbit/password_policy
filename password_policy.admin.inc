@@ -455,7 +455,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
       ->execute();
   }
 
-  drupal_goto('admin/config/people/password_policy/list');
+  $form_state['redirect'] = 'admin/config/people/password_policy/list';
 }
 
 /**
