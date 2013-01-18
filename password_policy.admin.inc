@@ -300,9 +300,11 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#required' => TRUE,
   );
   $form['policy']['description'] = array(
-    '#type' => 'textarea',
+    '#type' => 'textfield',
     '#title' => t('Description'),
     '#default_value' => isset($policy['description']) ? $policy['description'] : '',
+    '#size' => 128,
+    '#maxlength' => 255,
   );
 
   $form['roles'] = array(
