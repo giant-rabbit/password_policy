@@ -19,7 +19,7 @@ function password_policy_constraint_history_description() {
  */
 function password_policy_constraint_history_error($constraint) {
   if ($constraint == 'all') { 
-    return 'Password must not match any previous password.'; 
+    return t('Password must not match any previous password.');
   }
   else {
     return format_plural($constraint, 'Password must not match last password.', 'Password must not match last @count passwords.');
