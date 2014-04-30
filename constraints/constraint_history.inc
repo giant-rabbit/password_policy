@@ -33,6 +33,7 @@ function password_policy_constraint_history_validate($password, $constraint, $ac
   require_once DRUPAL_ROOT . '/' . variable_get('password_inc', 'includes/password.inc');
   $old_passwords = _password_policy_constraint_history_old_passwords($constraint, $account->uid);
   foreach ($old_passwords as $pw) {
+    $account->pass = $pw;
     if (user_check_password($password, $account)) {
       return FALSE;
     }
