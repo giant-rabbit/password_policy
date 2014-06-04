@@ -12,6 +12,13 @@
  * Settings form display.
  */
 function password_policy_admin_settings() {
+  $form['password_policy_force_change_reset'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Force password change on reset'),
+    '#default_value' => variable_get('password_policy_force_change_reset', 0),
+    '#description' => t('When a user requests a one-time login link, this option will require the user to change their password before continuing to browse the site.'),
+  );
+
   $form['expiration'] = array(
     '#type' => 'fieldset',
     '#title' => t('Expiration settings'),
@@ -98,6 +105,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
       variable_set('password_policy_show_restrictions', $form_state['values']['password_policy_show_restrictions']);
       variable_set('password_policy_warning_subject', $form_state['values']['password_policy_warning_subject']);
       variable_set('password_policy_warning_body', $form_state['values']['password_policy_warning_body']);
+      variable_set('password_policy_force_change_reset', $form_state['values']['password_policy_force_change_reset']);
       drupal_set_message(t('The configuration options have been saved.'));
       break;
     case t('Reset to defaults'):
@@ -107,6 +115,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
       variable_del('password_policy_show_restrictions');
       variable_del('password_policy_warning_subject');
       variable_del('password_policy_warning_body');
+      variable_del('password_policy_force_change_reset');
       drupal_set_message(t('The configuration options have been reset to their default values.'));
       break;
   }
@@ -152,7 +161,7 @@ function password_policy_admin_list($form) {
       '#markup' => theme('item_list', array('items' => _password_policy_admin_list_roles($pid))),
     );
     $form['policies'][$pid]['enabled'] = array(
-      '#type' => 'checkbox', 
+      '#type' => 'checkbox',
       '#default_value' => $row['enabled']
     );
     $form['policies'][$pid]['view'] = array(
@@ -226,7 +235,7 @@ function theme_password_policy_admin_list($variables) {
         'data' => array(
           drupal_render($form['policies'][$id]['name']),
           drupal_render($form['policies'][$id]['roles']),
-          drupal_render($form['policies'][$id]['enabled']),        
+          drupal_render($form['policies'][$id]['enabled']),
           drupal_render($form['policies'][$id]['weight']),
           drupal_render($form['policies'][$id]['view']),
           drupal_render($form['policies'][$id]['edit']),
@@ -238,8 +247,8 @@ function theme_password_policy_admin_list($variables) {
   }
   $header = array(t('Name'), t('Roles'), t('Enabled'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
   $output = theme('table', array(
-    'header' => $header, 
-    'rows' => $rows, 
+    'header' => $header,
+    'rows' => $rows,
     'attributes' => array('id' => 'password-policy-order'),
     'empty' => t('There are currently no policies. <a href="!url">Add a new one</a>.',
       array('!url' => url('admin/config/people/password_policy/add'))),
@@ -509,7 +518,7 @@ function password_policy_password_change_settings() {
     '#title' => t('Force users in the following roles to change their password'),
     '#description' => t('Users who are not signed in will be required to change their password immediately upon sign in. Users who are currently signed in will be required to change their password upon their next page click, but after changing their password will be redirected back to the page they were attempting to access.'),
   );
-  
+
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
