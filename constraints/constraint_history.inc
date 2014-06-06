@@ -18,7 +18,7 @@ function password_policy_constraint_history_description() {
  * Error message of the constraint.
  */
 function password_policy_constraint_history_error($constraint) {
-  if ($constraint == 'all') { 
+  if ($constraint == 'all') {
     return t('Password must not match any previous password.');
   }
   else {
@@ -52,10 +52,10 @@ function _password_policy_constraint_history_old_passwords($constraint, $uid) {
   $pass = array();
   if (!empty($uid)) {
     $query = db_select('password_policy_history', 'p', array('fetch' => PDO::FETCH_ASSOC, 'target' => 'slave'));
-    $query->fields('p',array('pass'))
+    $query->fields('p', array('pass'))
       ->condition('p.uid', $uid)
-      ->orderBy('p.created','DESC');
-    if($constraint != 'all') { 
+      ->orderBy('p.created', 'DESC');
+    if ($constraint != 'all') {
       $query->range(0, $constraint);
     }
     $result = $query->execute();
