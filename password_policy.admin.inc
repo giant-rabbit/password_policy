@@ -121,6 +121,15 @@ function password_policy_admin_settings_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Lists roles to which a policy applies.
+ *
+ * @param $pid
+ *   Policy id.
+ *
+ * @return
+ *   Array of role names.
+ */
 function _password_policy_admin_list_roles($pid) {
   $roles = array();
   $query = db_select('role', 'r', array('target' => 'slave'));
