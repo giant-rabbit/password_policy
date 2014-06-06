@@ -50,4 +50,3 @@ function password_policy_constraint_delay_validate($password, $constraint, $acco
 function password_policy_constraint_delay_js() {
   return '';
 }
-

@@ -53,4 +53,3 @@ function password_policy_constraint_username_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-

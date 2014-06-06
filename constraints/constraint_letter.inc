@@ -56,4 +56,3 @@ function password_policy_constraint_letter_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-

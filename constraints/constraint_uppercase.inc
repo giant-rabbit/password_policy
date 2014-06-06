@@ -58,4 +58,3 @@ function password_policy_constraint_uppercase_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-

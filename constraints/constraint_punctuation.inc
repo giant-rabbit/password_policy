@@ -56,4 +56,3 @@ function password_policy_constraint_punctuation_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-

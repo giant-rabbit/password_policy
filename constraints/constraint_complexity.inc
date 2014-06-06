@@ -87,4 +87,3 @@ function password_policy_constraint_complexity_js($constraint, $account) {
   $s .= "  }\n";
   return $s;
 }
-
