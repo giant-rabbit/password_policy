@@ -23,7 +23,7 @@ function password_policy_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Expiration settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#collapsed' => FALSE,
   );
   $form['expiration']['password_policy_admin'] = array(
     '#type' => 'checkbox',
@@ -49,7 +49,7 @@ function password_policy_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Visibility settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#collapsed' => FALSE,
   );
   $form['visibility']['password_policy_show_restrictions'] = array(
     '#type' => 'checkbox',
@@ -63,7 +63,7 @@ function password_policy_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('E-mail notification settings'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE
+    '#collapsed' => TRUE,
   );
   $form['email']['password_policy_warning_subject'] = array(
     '#type' => 'textfield',
@@ -171,7 +171,7 @@ function password_policy_admin_list($form) {
     );
     $form['policies'][$pid]['enabled'] = array(
       '#type' => 'checkbox',
-      '#default_value' => $row['enabled']
+      '#default_value' => $row['enabled'],
     );
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
@@ -329,7 +329,7 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#type' => 'fieldset',
     '#title' => t('Roles'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#collapsed' => FALSE,
   );
   $form['roles']['roles'] = array(
     '#type' => 'checkboxes',
@@ -343,7 +343,7 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#type' => 'fieldset',
     '#title' => t('Expiration'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#collapsed' => FALSE,
   );
   $form['expiration']['expiration'] = array(
     '#type' => 'textfield',
@@ -365,7 +365,7 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#type' => 'fieldset',
     '#title' => t('Constraints'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE
+    '#collapsed' => FALSE,
   );
 
   foreach (_password_policy_constraints() as $constraint) {
@@ -571,7 +571,7 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
     if (!empty($uids)) {
       db_update('password_policy_force_change')
         ->fields(array(
-          'force_change' => 1
+          'force_change' => 1,
         ))
         ->condition('uid', $uids, 'IN')
         ->execute();
