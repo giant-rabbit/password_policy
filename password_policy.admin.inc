@@ -70,14 +70,14 @@ function password_policy_admin_settings() {
     '#title' => t('Subject of warning e-mail'),
     '#default_value' => _password_policy_mail_text('warning_subject'),
     '#maxlength' => 180,
-    '#description' => t('Customize the subject of the warning e-mail message, which is sent to remind of password expiration.') .' '. t('Available variables are:') .' !username, !site, !uri, !uri_brief, !mailto, !date, !login_uri, !edit_uri, !days_left.',
+    '#description' => t('Customize the subject of the warning e-mail message, which is sent to remind of password expiration.') . ' ' . t('Available variables are:') . ' !username, !site, !uri, !uri_brief, !mailto, !date, !login_uri, !edit_uri, !days_left.',
   );
   $form['email']['password_policy_warning_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Body of warning e-mail'),
     '#default_value' => _password_policy_mail_text('warning_body'),
     '#rows' => 15,
-    '#description' => t('Customize the body of the warning e-mail message, which is sent to remind of password expiration.') .' '. t('Available variables are:') .' !username, !site, !uri, !uri_brief, !mailto, !date, !login_uri, !edit_uri, !days_left.',
+    '#description' => t('Customize the body of the warning e-mail message, which is sent to remind of password expiration.') . ' ' . t('Available variables are:') . ' !username, !site, !uri, !uri_brief, !mailto, !date, !login_uri, !edit_uri, !days_left.',
   );
 
   $form['submit'] = array(
@@ -176,17 +176,17 @@ function password_policy_admin_list($form) {
     $form['policies'][$pid]['view'] = array(
       '#type' => 'link',
       '#title' => 'view',
-      '#href' => 'admin/config/people/password_policy/'. $pid,
+      '#href' => 'admin/config/people/password_policy/' . $pid,
     );
     $form['policies'][$pid]['edit'] = array(
       '#type' => 'link',
       '#title' => 'edit',
-      '#href' => 'admin/config/people/password_policy/'. $pid . '/edit',
+      '#href' => 'admin/config/people/password_policy/' . $pid . '/edit',
     );
     $form['policies'][$pid]['delete'] = array(
       '#type' => 'link',
       '#title' => 'delete',
-      '#href' => 'admin/config/people/password_policy/'. $pid . '/delete',
+      '#href' => 'admin/config/people/password_policy/' . $pid . '/delete',
     );
     $form['policies'][$pid]['weight'] = array(
       '#type' => 'weight',
@@ -370,7 +370,7 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
 
   foreach (_password_policy_constraints() as $constraint) {
     $desc = _password_policy_constraint_description($constraint);
-    $form['constraints']['constraint_'. $constraint] = array(
+    $form['constraints']['constraint_' . $constraint] = array(
       '#type' => 'textfield',
       '#size' => 5,
       '#default_value' => isset($policy['policy'][$constraint]) ? $policy['policy'][$constraint] : NULL,
@@ -421,7 +421,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
   $op = $form_state['values']['op'];
 
   if ($op == t('Delete')) {
-    drupal_goto('admin/config/people/password_policy/delete/'. $form_state['values']['pid']);
+    drupal_goto('admin/config/people/password_policy/delete/' . $form_state['values']['pid']);
   }
 
   $policy = array();
@@ -450,7 +450,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
       ->condition('pid', $form_state['values']['pid'])
       ->execute();
     drupal_set_message(t('Policy %name has been updated.', array('%name' => $form_state['values']['name'])));
-    watchdog('password_policy', 'Policy %name updated.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/'. $form_state['values']['pid'] .'/edit'));
+    watchdog('password_policy', 'Policy %name updated.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/' . $form_state['values']['pid'] . '/edit'));
     $pid = $form_state['values']['pid'];
     db_delete('password_policy_role')
       ->condition('pid', $pid)
@@ -468,7 +468,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
       ))
       ->execute();
     drupal_set_message(t('Policy %name has been created.', array('%name' => $form_state['values']['name'])));
-    watchdog('password_policy', 'New policy %name created.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/'. $pid .'/edit'));
+    watchdog('password_policy', 'New policy %name created.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/' . $pid . '/edit'));
   }
 
   foreach (array_filter($form_state['values']['roles']) as $rid => $enabled) {
