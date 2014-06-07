@@ -254,7 +254,16 @@ function theme_password_policy_admin_list($variables) {
       );
     }
   }
-  $header = array(t('Name'), t('Roles'), t('Enabled'), t('Weight'), array('data' => t('Operations'), 'colspan' => 3));
+  $header = array(
+    t('Name'),
+    t('Roles'),
+    t('Enabled'),
+    t('Weight'),
+    array(
+      'data' => t('Operations'),
+      'colspan' => 3,
+    ),
+  );
   $output = theme('table', array(
     'header' => $header,
     'rows' => $rows,

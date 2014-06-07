@@ -18,7 +18,12 @@ function password_policy_password_tab_admin_settings() {
   $form = array();
 
   // Attachments settings.
-  $form['password_tab'] = array('#type' => 'fieldset', '#title' => t('Password tab settings'), '#collapsible' => FALSE, '#collapsed' => FALSE);
+  $form['password_tab'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Password tab settings'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
   $form['password_tab']['password_policy_password_tab_redirect'] = array(
     '#type'          => 'textfield',
     '#title'         => t('Redirect path on password change'),
