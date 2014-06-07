@@ -205,7 +205,7 @@ function password_policy_admin_list($form) {
 }
 
 /**
- * Submit hook for the form on the default list view for the password policy module.
+ * Submit hook for the form on the default list view.
  */
 function password_policy_admin_list_submit($form, &$form_state) {
   foreach ($form_state['values']['policies'] as $pid => $policy) {
@@ -483,8 +483,9 @@ function password_policy_admin_form_submit($form, &$form_state) {
 }
 
 /**
- * Confirmation form for the deletion of a password policy.  Deletion takes place
- * in password_policy_admin_delete_submit().
+ * Confirmation form for the deletion of a password policy.
+ *
+ * Deletion takes place in password_policy_admin_delete_submit().
  */
 function password_policy_admin_delete($form, $form_state, $policy) {
   $form['pid'] = array('#type' => 'hidden', '#value' => $policy['pid']);
