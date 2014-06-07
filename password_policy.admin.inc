@@ -212,10 +212,10 @@ function password_policy_admin_list_submit($form, &$form_state) {
     db_query("UPDATE {password_policy} SET weight = :weight WHERE pid = :pid", array(':weight' => $policy['weight'], ':pid' => $pid));
     // Ensure we don't reset the timestamp on policies that are already enabled.
     if ($policy['enabled']) {
-      db_query("UPDATE {password_policy} SET enabled = 1, created = :time WHERE pid = :pid AND enabled = 0", array(':time'=>time(), ':pid'=>$pid));
+      db_query("UPDATE {password_policy} SET enabled = 1, created = :time WHERE pid = :pid AND enabled = 0", array(':time' => time(), ':pid' => $pid));
     }
     else {
-      db_query("UPDATE {password_policy} SET enabled = 0 WHERE pid = :pid", array(':pid'=>$pid));
+      db_query("UPDATE {password_policy} SET enabled = 0 WHERE pid = :pid", array(':pid' => $pid));
     }
   }
 
@@ -466,7 +466,7 @@ function password_policy_admin_form_submit($form, &$form_state) {
         'warning' => str_replace(' ', '', $form_state['values']['warning']),
       ))
       ->execute();
-    drupal_set_message(t('Policy %name has been created.', array('%name' =>  $form_state['values']['name'])));
+    drupal_set_message(t('Policy %name has been created.', array('%name' => $form_state['values']['name'])));
     watchdog('password_policy', 'New policy %name created.', array('%name' => $form_state['values']['name']), WATCHDOG_NOTICE, l(t('edit'), 'admin/config/people/password_policy/'. $pid .'/edit'));
   }
 
