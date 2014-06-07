@@ -44,7 +44,7 @@ function password_policy_admin_settings() {
     '#options' => array('0' => t('Expired accounts are blocked. Only administrators can unblock them. Users whose accounts have expired will be forced to change their passwords at next login (after being unblocked).'), '1' => t('Expired accounts are not blocked. Users whose accounts have expired will be forced to change their passwords at next login.')),
   );
 
-  // Visibility
+  // Visibility.
   $form['visibility'] = array(
     '#type' => 'fieldset',
     '#title' => t('Visibility settings'),
@@ -427,7 +427,8 @@ function password_policy_admin_form_submit($form, &$form_state) {
   $policy = array();
   foreach ($form_state['values'] as $key => $value) {
     // If we have no form value, then we have no constraint to set.
-    if (!is_array($value)) { //dodge issues with roles array
+    if (!is_array($value)) {
+      // Dodge issues with roles array.
       $value = trim($value);
       if ($value != "" && preg_match("/^constraint_/", $key)) {
         $policy[substr($key, 11)] = $value;
@@ -550,15 +551,15 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
   }
   ($form_state['values']['password_policy_new_login_change']) ? drupal_set_message(t('New users will be required to change their password on first-time login.')) : drupal_set_message(t('New users will not be required to change their pasword on first-time login.'));
   foreach ($form_state['values']['password_policy_force_change_roles'] as $role) {
-    // skip over null values returned by unselected roles
+    // Skip over null values returned by unselected roles.
     if ($role == 0) {
       continue;
     }
     $uids = array();
-    // special handling for authenticated users role
-    // since this role makes no entries in the users_roles table
+    // Special handling for authenticated users role, since this role makes no
+    // entries in the users_roles table.
     if ($role == 2) {
-      // no point in flagging Anonymous since they can't log in anyway
+      // No point in flagging anonymous since they can't log in anyway.
       $db_uids = db_query('SELECT uid FROM {users} WHERE uid <> 0')->fetchCol();
     }
     else {
