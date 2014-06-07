@@ -47,6 +47,9 @@ function password_policy_constraint_delay_validate($password, $constraint, $acco
   return TRUE;
 }
 
+/**
+ * Javascript portion.
+ */
 function password_policy_constraint_delay_js() {
   return '';
 }
