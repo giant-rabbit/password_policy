@@ -542,7 +542,7 @@ function password_policy_password_change_settings() {
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => t('Save changes'),
   );
 
   return $form;
