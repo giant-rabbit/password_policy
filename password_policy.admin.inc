@@ -108,6 +108,7 @@ function password_policy_admin_settings_submit($form, &$form_state) {
       variable_set('password_policy_force_change_reset', $form_state['values']['password_policy_force_change_reset']);
       drupal_set_message(t('The configuration options have been saved.'));
       break;
+
     case t('Reset to defaults'):
       variable_del('password_policy_admin');
       variable_del('password_policy_begin');

@@ -54,6 +54,7 @@ function password_policy_password_tab_admin_settings_submit($form, &$form_state)
       variable_set('password_policy_password_tab_redirect', $values['password_policy_password_tab_redirect']);
       drupal_set_message(t('The configuration options have been saved.'));
       break;
+
     case t('Reset to defaults'):
       variable_del('password_policy_password_tab_redirect');
       drupal_set_message(t('The configuration options have been reset to their default values.'));
