@@ -223,7 +223,6 @@ function password_policy_admin_list_submit($form, &$form_state) {
   drupal_set_message(t('The changes have been saved.'));
 }
 
-
 /**
  * Returns HTML for the password policy administration list.
  *
