@@ -254,6 +254,9 @@ function theme_password_policy_admin_list($variables) {
       );
     }
   }
+  if (empty($rows)) {
+    unset($form['actions']['submit']);
+  }
   $header = array(
     t('Name'),
     t('Roles'),
