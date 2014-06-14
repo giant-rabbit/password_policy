@@ -350,7 +350,7 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#title' => t('Roles'),
     '#options' => user_roles(TRUE),
     '#default_value' => isset($policy['roles']) ? $policy['roles'] : array(),
-    '#description' => t('Select the roles that this policy will apply to.'),
+    '#description' => t("Select the roles that this policy will apply to."),
   );
 
   $form['expiration'] = array(
@@ -365,14 +365,14 @@ function password_policy_admin_form($form, &$form_state, $policy = NULL) {
     '#default_value' => isset($policy['expiration']) ? $policy['expiration'] : '0',
     '#size' => 5,
     '#maxlength' => 5,
-    '#description' => t('The passwords will expire after this number of days. The users with expired passwords will be blocked. Setting this field to 0 will not put any password expiration constraints.'),
+    '#description' => t("The passwords will expire after this number of days. The users with expired passwords will be blocked. Setting this field to 0 will not put any password expiration constraints."),
   );
   $form['expiration']['warning'] = array(
     '#type' => 'textfield',
     '#title' => t('Password Expiration Warning'),
     '#default_value' => isset($policy['warning']) ? $policy['warning'] : '',
     '#size' => 10,
-    '#description' => t('The comma separated list of days. The warning about expiration of the password will be sent out on those days before the expiration. Leaving this field empty won\'t send out or display any warnings.'),
+    '#description' => t("The comma separated list of days. The warning about expiration of the password will be sent out on those days before the expiration. Leaving this field empty won't send out or display any warnings."),
   );
 
   $form['constraints'] = array(
