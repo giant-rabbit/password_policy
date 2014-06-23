@@ -539,6 +539,11 @@ function password_policy_password_change_settings() {
     '#title' => t('Force password change on first-time login'),
     '#default_value' => variable_get('password_policy_new_login_change', 0),
   );
+  $form['password_policy_force_logout'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('If logged in, log the user out if they are forced to change their password.'),
+    '#default_value' => variable_get('password_policy_force_logout', 0),
+  );
   $roles = user_roles(TRUE);
   $form['password_policy_force_change_roles'] = array(
     '#type' => 'checkboxes',
@@ -563,6 +568,7 @@ function password_policy_password_change_settings_submit($form, &$form_state) {
   global $user;
   $selected_roles = array();
   variable_set('password_policy_new_login_change', $form_state['values']['password_policy_new_login_change']);
+  variable_set('password_policy_force_logout', $form_state['values']['password_policy_force_logout']);
   if ($form_state['values']['password_policy_new_login_change'] == 1) {
     watchdog('password_policy', 'New user accounts must change password on new login enabled by !admin', array('!admin' => $user->name), WATCHDOG_NOTICE);
   }
